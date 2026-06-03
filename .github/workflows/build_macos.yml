@@ -68,6 +68,8 @@ jobs:
           
       - name: Configure mpv
         run: |
+          export CC=gcc
+          export CXX=g++
           cd mpv
           meson setup -Ddefault_library=static -Dprefer_static=true \
           -Dc_link_args='-static' -Dcpp_link_args='-static' \
