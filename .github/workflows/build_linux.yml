@@ -22,10 +22,10 @@ jobs:
         run: |
           git clone --depth 1 --branch v2.23-branch https://github.com/intel/libva.git
           cd libva
-          cd build 
-          meson setup .. -Dprefix=/usr -Dlibdir=/usr/lib/x86_64-linux-gnu
-          ninja
-          sudo ninja install
+          ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu --disable-shared --enable-static
+          ./configure --disable-tests --disable-x11 --disable-wayland
+          make
+          sudo make install
           
       - name: Download mpv source code
         run: git clone --depth 1 --branch release/0.41 https://github.com/mpv-player/mpv.git
@@ -35,7 +35,6 @@ jobs:
           cd mpv
           
           meson wrap update-db
-          
           meson wrap install expat
           
           mkdir -p subprojects
