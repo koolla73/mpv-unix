@@ -89,7 +89,7 @@ jobs:
       - name: Install mpv
         run: |
           cd mpv
-          meson install -C build
+          sudo meson install -C build
           
       - name: List all files
         run: sudo ls -R / > output.txt
