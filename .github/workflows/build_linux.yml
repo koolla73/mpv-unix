@@ -15,15 +15,15 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install libdrm-dev libfontconfig1-dev libva-drm2 nasm
+          sudo apt install libdrm-dev libfontconfig1-dev nasm
           sudo pip3 install meson
 
       - name: Compile and install libva
         run: |
           git clone --depth 1 --branch v2.23-branch https://github.com/intel/libva.git
           cd libva
-          ./autogen.sh --disable-shared --enable-static
-          ./configure --disable-tests --disable-x11 --disable-wayland
+          ./autogen.sh --enable-shared
+          ./configure --disable-x11 --disable-wayland
           make
           sudo make install
           
