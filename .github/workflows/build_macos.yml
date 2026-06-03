@@ -97,7 +97,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mpv-Linux-Files
+          name: mpv-macOS-Files
           path: ${{github.workspace}}/output.txt
           if-no-files-found: error
           retention-days: 1
