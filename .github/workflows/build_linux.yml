@@ -15,7 +15,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install libdrm-dev libfontconfig1-dev nasm
+          sudo apt install libdrm-dev libfontconfig1-dev libva-drm nasm
           sudo pip3 install meson
 
       - name: Compile and install libva
@@ -23,7 +23,7 @@ jobs:
           git clone --depth 1 --branch v2.23-branch https://github.com/intel/libva.git
           cd libva
           cd build 
-          meson .. -Dprefix=/usr -Dlibdir=/usr/lib/x86_64-linux-gnu
+          meson setup .. -Dprefix=/usr -Dlibdir=/usr/lib/x86_64-linux-gnu
           ninja
           sudo ninja install
           
