@@ -22,7 +22,7 @@ jobs:
         run: |
           git clone --depth 1 --branch v2.23-branch https://github.com/intel/libva.git
           cd libva
-          ./autogen.sh --disable-shared
+          ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu --disable-shared
           make
           sudo make install
           
