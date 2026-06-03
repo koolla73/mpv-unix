@@ -69,7 +69,7 @@ jobs:
           mkdir -p upload/bin
           mkdir -p upload/include/mpv
           mkdir -p upload/lib
-          cp -r mpv/libmpv/. upload/include/mpv
+          cp -r mpv/include/mpv/. upload/include/mpv
           
       - name: Build mpv
         run: |
