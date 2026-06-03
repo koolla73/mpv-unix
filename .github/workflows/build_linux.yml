@@ -68,7 +68,7 @@ jobs:
           mkdir -p upload/lib
           cp -r mpv/include/mpv/. upload/include/mpv
           
-      - name: Build mpv
+      - name: Configure mpv
         run: |
           cd mpv
           meson setup -Ddefault_library=static -Dprefer_static=true \
@@ -80,7 +80,15 @@ jobs:
           -Dopenssl:default_library=static -Dpcre2:default_library=static -Dwin-iconv:default_library=static \
           -Dzlib:default_library=static \
           -Dffmpeg:gpl=enabled -Dffmpeg:openssl=enabled -Dffmpeg:libxml2=enabled build
+
+      - name: Compile mpv
+        run: |
+          cd mpv
           meson compile -C build
+          
+      - name: Install mpv
+        run: |
+          cd mpv
           meson install -C build
           
       - name: List all files
