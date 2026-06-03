@@ -1,5 +1,4 @@
-name: Windows Build Cross-Compiling Meson
-
+name: Linux Build
 on:
   push:
     branches:
@@ -9,44 +8,24 @@ on:
       - main
   
 jobs:
-  Build-Win:
+  Build-Linux:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       
       - name: Install dependencies
         run: |
-          sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools nasm ninja-build llvm
-          python3 -m pip install meson
+          sudo apt install libdrm-dev libfontconfig1-dev libva-dev libva-intel-vaapi-driver nasm vainfo
+          sudo pip3 install meson
           
-      - name: Download source code
-        run: git clone --depth 1 --branch release/0.38 https://github.com/mpv-player/mpv.git
-
-      - name: Copy modified source code to mpv folders
-        run: cp -R ${{ github.workspace }}/newsrc/* ${{ github.workspace }}/mpv
+      - name: Download mpv source code
+        run: git clone --depth 1 --branch release/0.41 https://github.com/mpv-player/mpv.git
         
       - name: Initialize subprojects
         run: |
           cd mpv
-
-          cat <<EOF > cross-file.txt
-          [binaries]
-          c = 'x86_64-w64-mingw32-gcc'
-          cpp = 'x86_64-w64-mingw32-g++'
-          ar = 'x86_64-w64-mingw32-ar'
-          windres = 'x86_64-w64-mingw32-windres'
-          strip = 'x86_64-w64-mingw32-strip'
-          exe_wrapper = 'wine64'
-          
-          [host_machine]
-          system = 'windows'
-          cpu_family = 'x86_64'
-          cpu = 'x86_64'
-          endian = 'little'
-          EOF
           
           meson wrap update-db
-          
           meson wrap install expat
           
           mkdir -p subprojects
@@ -86,43 +65,39 @@ jobs:
           mkdir -p upload/bin
           mkdir -p upload/include/mpv
           mkdir -p upload/lib
-          cp -r mpv/libmpv/. upload/include/mpv
+          cp -r mpv/include/mpv/. upload/include/mpv
           
-      - name: Build mpv
+      - name: Configure mpv
         run: |
           cd mpv
           meson setup -Ddefault_library=static -Dprefer_static=true \
           -Dc_link_args='-static' -Dcpp_link_args='-static' \
+          -Dvaapi=enabled -Dvaapi-drm=enabled \
           -Dffmpeg:default_library=static -Dlibass:default_library=static \
           -Dbzip2:default_library=static -Dfreetype2:default_library=static \
           -Dfribidi:default_library=static -Dglib:default_library=static -Dgoogle-brotli:default_library=static \
           -Dgraphite2:default_library=static -Dharfbuzz:default_library=static -Dlibpng:default_library=static \
           -Dopenssl:default_library=static -Dpcre2:default_library=static -Dwin-iconv:default_library=static \
           -Dzlib:default_library=static \
-          -Dffmpeg:gpl=enabled -Dffmpeg:openssl=enabled -Dffmpeg:libxml2=enabled \
-          --cross-file cross-file.txt build
-          
-          ninja -C build mpv.exe
+          -Dffmpeg:gpl=enabled -Dffmpeg:openssl=enabled -Dffmpeg:libxml2=enabled build
 
-      - name: Build libmpv
+      - name: Compile mpv
         run: |
           cd mpv
-          meson configure build -Dlibmpv=true -Ddefault_library=shared
-          ninja -C build libmpv-2.dll
-
-      - name: Copy libmpv files
-        run: |
-          cd mpv/build
-          gendef libmpv-2.dll
-          llvm-dlltool -m i386:x86-64 -d libmpv-2.def -D libmpv-2.dll -l libmpv-2.lib
-          cp libmpv-2.dll ${{github.workspace}}/upload/bin
-          cp libmpv-2.def ${{github.workspace}}/upload/lib
-          cp libmpv-2.lib ${{github.workspace}}/upload/lib
+          meson compile -C build
           
+      - name: Install mpv
+        run: |
+          cd mpv
+          sudo meson install -C build
+          
+      - name: List all files
+        run: sudo ls -R / > output.txt
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mpv-Windows
-          path: ${{github.workspace}}/upload
+          name: mpv-Linux-Files
+          path: ${{github.workspace}}/output.txt
           if-no-files-found: error
           retention-days: 1
