@@ -15,7 +15,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install libdrm-dev libfontconfig1-dev libva-drm nasm
+          sudo apt install libdrm-dev libfontconfig1-dev libva-drm2 nasm
           sudo pip3 install meson
 
       - name: Compile and install libva
