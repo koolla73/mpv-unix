@@ -15,10 +15,18 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install libfontconfig1-dev libva-dev nasm
+          sudo apt install libdrm-dev libfontconfig1-dev nasm
           sudo pip3 install meson
+
+      - name: Compile and install libva
+        run: |
+          git clone --depth 1 --branch v2.23-branch https://github.com/intel/libva.git
+          cd libva
+          ./autogen.sh --disable-shared
+          make
+          sudo make install
           
-      - name: Download source code
+      - name: Download mpv source code
         run: git clone --depth 1 --branch release/0.41 https://github.com/mpv-player/mpv.git
         
       - name: Initialize subprojects
