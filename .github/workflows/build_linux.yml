@@ -81,7 +81,7 @@ jobs:
           cd mpv
           meson setup -Ddefault_library=static -Dprefer_static=true \
           -Dc_link_args='-static' -Dcpp_link_args='-static' \
-          -Dvaapi=enabled \
+          -Dvaapi=enabled -Dvaapi-drm=enabled \
           -Dffmpeg:default_library=static -Dlibass:default_library=static \
           -Dbzip2:default_library=static -Dfreetype2:default_library=static \
           -Dfribidi:default_library=static -Dglib:default_library=static -Dgoogle-brotli:default_library=static \
