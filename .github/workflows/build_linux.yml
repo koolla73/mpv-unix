@@ -15,7 +15,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install libdrm-dev libfontconfig1-dev libva-dev nasm
+          sudo apt install libdrm-dev libfontconfig1-dev libva-dev libva-intel-vaapi-driver nasm vainfo
           sudo pip3 install meson
           
       - name: Download mpv source code
@@ -72,7 +72,7 @@ jobs:
           cd mpv
           meson setup -Ddefault_library=static -Dprefer_static=true \
           -Dc_link_args='-static' -Dcpp_link_args='-static' \
-          -Dvaapi=enabled \
+          -Dvaapi=enabled -Dvaapi-drm=enabled \
           -Dffmpeg:default_library=static -Dlibass:default_library=static \
           -Dbzip2:default_library=static -Dfreetype2:default_library=static \
           -Dfribidi:default_library=static -Dglib:default_library=static -Dgoogle-brotli:default_library=static \
