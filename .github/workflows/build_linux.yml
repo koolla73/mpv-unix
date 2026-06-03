@@ -15,7 +15,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install nasm
+          sudo apt install fontconfig nasm
           python3 -m pip install meson
           
       - name: Download source code
