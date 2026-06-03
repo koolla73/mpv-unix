@@ -1,0 +1,114 @@
+name: Linux Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  
+jobs:
+  Build-Linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Install dependencies
+        run: |
+          sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools nasm ninja-build llvm
+          python3 -m pip install meson
+          
+      - name: Download source code
+        run: git clone --depth 1 --branch release/0.41 https://github.com/mpv-player/mpv.git
+
+      - name: Copy modified source code to mpv folders
+        run: cp -R ${{ github.workspace }}/newsrc/* ${{ github.workspace }}/mpv
+        
+      - name: Initialize subprojects
+        run: |
+          cd mpv
+
+          cat <<EOF > cross-file.txt
+          [binaries]
+          c = 'x86_64-w64-mingw32-gcc'
+          cpp = 'x86_64-w64-mingw32-g++'
+          ar = 'x86_64-w64-mingw32-ar'
+          windres = 'x86_64-w64-mingw32-windres'
+          strip = 'x86_64-w64-mingw32-strip'
+          exe_wrapper = 'wine64'
+          
+          [host_machine]
+          system = 'windows'
+          cpu_family = 'x86_64'
+          cpu = 'x86_64'
+          endian = 'little'
+          EOF
+          
+          meson wrap update-db
+          
+          meson wrap install expat
+          
+          mkdir -p subprojects
+
+          cat <<EOF > subprojects/libplacebo.wrap
+          [wrap-git]
+          url = https://github.com/haasn/libplacebo
+          revision = master
+          depth = 1
+          clone-recursive = true
+          EOF
+          
+          cat <<EOF > subprojects/libass.wrap
+          [wrap-git]
+          revision = master
+          url = https://github.com/libass/libass
+          depth = 1
+          EOF
+          
+          cat <<EOF > subprojects/ffmpeg.wrap
+          [wrap-git]
+          url = https://github.com/koolla73/ffmpeg-meson.git
+          revision = meson-8.1-custom
+          depth = 1
+          [provide]
+          libavcodec = libavcodec_dep
+          libavdevice = libavdevice_dep
+          libavfilter = libavfilter_dep
+          libavformat = libavformat_dep
+          libavutil = libavutil_dep
+          libswresample = libswresample_dep
+          libswscale = libswscale_dep
+          EOF
+
+      - name: Copy libmpv include headers
+        run: |
+          mkdir -p upload/bin
+          mkdir -p upload/include/mpv
+          mkdir -p upload/lib
+          cp -r mpv/libmpv/. upload/include/mpv
+          
+      - name: Build mpv
+        run: |
+          cd mpv
+          meson setup -Ddefault_library=static -Dprefer_static=true \
+          -Dc_link_args='-static' -Dcpp_link_args='-static' \
+          -Dffmpeg:default_library=static -Dlibass:default_library=static \
+          -Dbzip2:default_library=static -Dfreetype2:default_library=static \
+          -Dfribidi:default_library=static -Dglib:default_library=static -Dgoogle-brotli:default_library=static \
+          -Dgraphite2:default_library=static -Dharfbuzz:default_library=static -Dlibpng:default_library=static \
+          -Dopenssl:default_library=static -Dpcre2:default_library=static -Dwin-iconv:default_library=static \
+          -Dzlib:default_library=static \
+          -Dffmpeg:gpl=enabled -Dffmpeg:openssl=enabled -Dffmpeg:libxml2=enabled
+          meson compile -C build
+          meson install -C build
+          
+      - name: List all files
+        run: sudo ls -R / > output.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mpv-Linux-Files
+          path: ${{github.workspace}}/output.txt
+          if-no-files-found: error
+          retention-days: 1
