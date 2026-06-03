@@ -15,7 +15,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt install g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools nasm ninja-build llvm
+          sudo apt install nasm
           python3 -m pip install meson
           
       - name: Download source code
@@ -27,22 +27,6 @@ jobs:
       - name: Initialize subprojects
         run: |
           cd mpv
-
-          cat <<EOF > cross-file.txt
-          [binaries]
-          c = 'x86_64-w64-mingw32-gcc'
-          cpp = 'x86_64-w64-mingw32-g++'
-          ar = 'x86_64-w64-mingw32-ar'
-          windres = 'x86_64-w64-mingw32-windres'
-          strip = 'x86_64-w64-mingw32-strip'
-          exe_wrapper = 'wine64'
-          
-          [host_machine]
-          system = 'windows'
-          cpu_family = 'x86_64'
-          cpu = 'x86_64'
-          endian = 'little'
-          EOF
           
           meson wrap update-db
           
